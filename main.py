@@ -71,20 +71,21 @@ async def show_projects(message: types.Message):
     user_projects = session.query(projects).filter_by(user_id=user_id).all()
     session.close()
 
-    if user_projects:
-        projects_keyboard = InlineKeyboardMarkup(row_width=1, inline_keyboard=[])
-
-        for project in user_projects:
-            button_text = f"{project.project_name} - {project.end_date.strftime('%d.%m.%y %H:%M')}"
-            callback_data = f"project_{project.id}"
-            delete_callback_data = f"delete_project_{project.id}"
-            projects_keyboard.inline_keyboard.append(
-                [InlineKeyboardButton(text=button_text, callback_data=callback_data),
-                 InlineKeyboardButton(text="Удалить проект", callback_data=delete_callback_data)])
-
-        await message.answer("Ваши проекты:", reply_markup=projects_keyboard)
-    else:
+    if not user_projects:
         await message.answer("У вас пока нет проектов.")
+        return
+
+    projects_keyboard = InlineKeyboardMarkup(row_width=1, inline_keyboard=[])
+
+    for project in user_projects:
+        button_text = f"{project.project_name} - {project.end_date.strftime('%d.%m.%y %H:%M')}"
+        callback_data = f"project_{project.id}"
+        delete_callback_data = f"delete_project_{project.id}"
+        projects_keyboard.inline_keyboard.append(
+            [InlineKeyboardButton(text=button_text, callback_data=callback_data),
+             InlineKeyboardButton(text="Удалить проект", callback_data=delete_callback_data)])
+
+    await message.answer("Ваши проекты:", reply_markup=projects_keyboard)
 
 
 @dp.callback_query(lambda query: query.data.startswith('delete_project_'))
